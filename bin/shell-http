@@ -19,11 +19,15 @@ if(program.token)
 
 var sh = require('../');
 
+if(!program.args[0])
+  program.help();
+
 var u = url.parse(program.args[0]);
 
 var protocol = u.protocol;
 if(!protocol)
   program.help();
+
 protocol = protocol.replace(/:$/,'');
 
 var host = u.hostname;
@@ -33,7 +37,7 @@ if(!host)
   else
     program.help();
 
-var port = parseInt(u.port, 10) || 80;
+var port = parseInt(u.port || process.env.PORT, 10) || 80;
 if(!port)
   program.help();
 
@@ -43,12 +47,15 @@ if(process.env.SHELL_HTTP_TOKEN)
 if(program.server) {
 
   if(protocol === 'https')
-    console.warn("Sorry only 'http' command-line servers are supported");
+    console.warn("Sorry only 'http' command-line servers are supported.");
 
   //install shell listener
   var shserver = sh.install(
     //create server
     http.createServer(function(req, res) {
+      res.writeHead(200, {
+        'shell-http-version': pkg.version
+      });
       res.end('a normal http server... or is it... https://github.com/jpillora/node-shell-http');
     }).listen(port, host, function() {
       console.log("Listening on http://%s:%s", host, port);

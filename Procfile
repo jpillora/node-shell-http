@@ -1,1 +1,1 @@
-web: node bin/shell-http --server
+web: node bin/shell-http -s http://0.0.0.0

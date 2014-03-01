@@ -46,16 +46,29 @@ client.stdout.on('data', function(data) {
 });
 ```
 
-### Connect with the [shell-http](http://github.com/jpillora/shell-http) CLI
+### Connect with the `shell-http` CLI
 
 ```
 npm install -g shell-http
+```
+```
+shell-http --help
+
+  Usage: shell-http [options] url
+
+  Options:
+
+    -h, --help            output usage information
+    -V, --version         output the version number
+    -c, --client          run in client mode (default)
+    -s, --server          run in server mode
+    -t, --token [abc123]  secret token
 ```
 
 ### Live demo running on Heroku:
 
 ```
-shell-http --token foobar shell-http-demo.herokuapp.com
+shell-http --token foobar http://shell-http-demo.herokuapp.com
 ```
 ```
 Using token "foobar"
@@ -70,8 +83,8 @@ $ date
 
 ## Security Considerations
 
-This project was created for fun and is not production ready. If you are
-intent on using it however, I strongly advise you run it over an HTTPS server
+This project was created for fun and is not production ready. However, if you are
+intent on using it, I strongly advise you run it over an HTTPS server
 with the access token (`SHELL_HTTP_TOKEN` env var) set to a cryptographically
 strong passphrase.
 
