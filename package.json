@@ -1,0 +1,23 @@
+{
+  "name": "shell-http",
+  "version": "0.2.0",
+  "description": "Shell access over HTTP",
+  "main": "lib/index.js",
+  "bin": {
+    "shell-http": "bin/shell-http"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jpillora/node-shell-http"
+  },
+  "author": "Jaime Pillora <dev@jpillora.com>",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {
+    "pnode": "~0.2.4",
+    "through": "~2.3.4",
+    "readable-stream": "~1.0.26",
+    "commander": "~2.1.0",
+    "colors": "~0.6.2"
+  }
+}

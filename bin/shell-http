@@ -1,0 +1,110 @@
+#!/usr/bin/env node
+var pkg = require('../package.json');
+var through = require('through');
+var program = require('commander');
+var http = require("http");
+require('colors');
+
+program
+  .version(pkg.version)
+  .usage('[options] host')
+  .option('-c, --client', 'run in client mode (default)')
+  .option('-s, --server', 'run in server mode')
+  .option('-p, --port [80]', 'http port', parseInt, process.env.PORT || 80)
+  .option('-t, --token [abc123]', 'secret token')
+  .parse(process.argv);
+
+if(program.token)
+  process.env.SHELL_HTTP_TOKEN = program.token;
+
+var sh = require('../');
+
+var host = program.args[0];
+if(!host)
+  if(program.server)
+    host = "0.0.0.0";
+  else
+    program.help();
+
+var port = program.port;
+if(!port)
+  program.help();
+
+if(process.env.SHELL_HTTP_TOKEN)
+  console.log("Using token %j".grey, process.env.SHELL_HTTP_TOKEN);
+
+if(program.server) {
+  //install shell listener
+  var shserver = sh.install(
+    //create server
+    http.createServer(function(req, res) {
+      res.end('a normal http server... or is it... :O');
+    }).listen(port, "0.0.0.0", function() {
+      console.log("Listening on http://0.0.0.0:"+port);
+    })
+  );
+
+  var d = function() { return new Date().toISOString(); };
+
+  shserver.on('connection', function(id, ip, port) {
+    console.log("%s: Client '%s' connected (%s:%s)", d(), id, ip, port);
+  });
+
+  shserver.on('disconnection', function(id) {
+    console.log("%s: Client '%s' disconnected", d(), id);
+  });
+
+} else {
+  console.log("Connecting to http://%s:%s...".grey,host,port);
+
+  var client = sh.connect(port, host);
+
+  client.on('connected', function() {
+    var i = client.info;
+    console.log("  Connected to '%s' (%s)", i.hostname.green, ('http://'+host+':'+port).green);
+    console.log("  Server Time '%s' (Uptime %ssec)", i.date.green, i.uptime.toString().green);
+    console.log("  Memory Usage %sGB/%sGB (%s% free)",
+      (Math.round(i.freemem/10e5)/10e2).toString().cyan,
+      (Math.round(i.totalmem/10e5)/10e2).toString().cyan,
+      (Math.round((i.freemem/i.totalmem)*10e3)/10e1).toString().cyan
+    );
+    console.log("  Average CPU Loads %j (%s.0 max)", i.loadavg, i.cpus.length);
+    dollar();
+  });
+
+  client.on('disconnected', function() {
+    console.log("  Disconnected".red);
+  });
+
+  process.stdin.pipe(client.stdin);
+
+  var split = function() {
+    return through(function(buff) {
+      dollar();
+      buff.toString().split(/\n/).forEach(function(line) {
+        if(line) this.emit('data', line+"\n");
+      }.bind(this));
+    });
+  };
+
+  var dollar = function() {
+    clearTimeout(dollar.t);
+    dollar.t = setTimeout(function() {
+      process.stdout.write("$ ".grey);
+    }, 1000);
+  };
+
+
+  var colorize = function(prefix) {
+    return through(function(buff) {
+      this.emit('data', prefix + buff);
+    });
+  };
+
+  client.stdout.pipe(split()).pipe(colorize("> ".cyan)).pipe(process.stdout);
+  client.stderr.pipe(split()).pipe(colorize("> ".red)).pipe(process.stderr);
+}
+
+
+
+
