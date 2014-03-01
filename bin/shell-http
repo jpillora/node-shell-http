@@ -19,14 +19,18 @@ if(program.token)
 
 var sh = require('../');
 
-if(!program.args[0])
+if(!program.args[0]) {
+  console.warn("  Missing URL");
   program.help();
+}
 
 var u = url.parse(program.args[0]);
 
 var protocol = u.protocol;
-if(!protocol)
+if(!protocol) {
+  console.warn("  Invalid URL - Missing protocol");
   program.help();
+}
 
 protocol = protocol.replace(/:$/,'');
 
@@ -34,12 +38,16 @@ var host = u.hostname;
 if(!host)
   if(program.server)
     host = "0.0.0.0";
-  else
+  else {
+    console.warn("  Invalid URL - Missing hostname");
     program.help();
+  }
 
 var port = parseInt(u.port || process.env.PORT, 10) || 80;
-if(!port)
+if(!port) {
+  console.warn("  Invalid port");
   program.help();
+}
 
 if(process.env.SHELL_HTTP_TOKEN)
   console.log("Using token %j".grey, process.env.SHELL_HTTP_TOKEN);
