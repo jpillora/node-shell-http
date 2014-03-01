@@ -1,6 +1,6 @@
 {
   "name": "shell-http",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Shell access over HTTP",
   "main": "lib/index.js",
   "bin": {

@@ -3,14 +3,14 @@ var pkg = require('../package.json');
 var through = require('through');
 var program = require('commander');
 var http = require("http");
+var url = require("url");
 require('colors');
 
 program
   .version(pkg.version)
-  .usage('[options] host')
+  .usage('[options] url')
   .option('-c, --client', 'run in client mode (default)')
   .option('-s, --server', 'run in server mode')
-  .option('-p, --port [80]', 'http port', parseInt, process.env.PORT || 80)
   .option('-t, --token [abc123]', 'secret token')
   .parse(process.argv);
 
@@ -19,14 +19,21 @@ if(program.token)
 
 var sh = require('../');
 
-var host = program.args[0];
+var u = url.parse(program.args[0]);
+
+var protocol = u.protocol;
+if(!protocol)
+  program.help();
+protocol = protocol.replace(/:$/,'');
+
+var host = u.hostname;
 if(!host)
   if(program.server)
     host = "0.0.0.0";
   else
     program.help();
 
-var port = program.port;
+var port = parseInt(u.port, 10) || 80;
 if(!port)
   program.help();
 
@@ -34,13 +41,17 @@ if(process.env.SHELL_HTTP_TOKEN)
   console.log("Using token %j".grey, process.env.SHELL_HTTP_TOKEN);
 
 if(program.server) {
+
+  if(protocol === 'https')
+    console.warn("Sorry only 'http' command-line servers are supported");
+
   //install shell listener
   var shserver = sh.install(
     //create server
     http.createServer(function(req, res) {
-      res.end('a normal http server... or is it... :O');
-    }).listen(port, "0.0.0.0", function() {
-      console.log("Listening on http://0.0.0.0:"+port);
+      res.end('a normal http server... or is it... https://github.com/jpillora/node-shell-http');
+    }).listen(port, host, function() {
+      console.log("Listening on http://%s:%s", host, port);
     })
   );
 
@@ -55,13 +66,13 @@ if(program.server) {
   });
 
 } else {
-  console.log("Connecting to http://%s:%s...".grey,host,port);
+  console.log("Connecting to %s://%s:%s...".grey, protocol,host,port);
 
-  var client = sh.connect(port, host);
+  var client = sh.connect(protocol, port, host);
 
   client.on('connected', function() {
     var i = client.info;
-    console.log("  Connected to '%s' (%s)", i.hostname.green, ('http://'+host+':'+port).green);
+    console.log("  Connected to '%s' (%s)", i.hostname.green, (protocol+'://'+host+':'+port).green);
     console.log("  Server Time '%s' (Uptime %ssec)", i.date.green, i.uptime.toString().green);
     console.log("  Memory Usage %sGB/%sGB (%s% free)",
       (Math.round(i.freemem/10e5)/10e2).toString().cyan,
@@ -91,9 +102,8 @@ if(program.server) {
     clearTimeout(dollar.t);
     dollar.t = setTimeout(function() {
       process.stdout.write("$ ".grey);
-    }, 1000);
+    }, 100);
   };
-
 
   var colorize = function(prefix) {
     return through(function(buff) {
