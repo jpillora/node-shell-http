@@ -1,8 +1,8 @@
-# <name>shell-http-demo</end>
+# <name>shell-http</end>
 
 ## Summary
 
-<description></end>
+<description>Shell access over HTTP</end>
 
 ## Install the [shell-http](http://github.com/jpillora/shell-http) CLI
 
@@ -13,7 +13,7 @@ npm install -g shell-http
 ## Connect
 
 ```
-shell-http --token foobar shell-http-demo.herokuapp.com 80
+shell-http --token foobar shell-http-demo.herokuapp.com
 ```
 
 <license()>

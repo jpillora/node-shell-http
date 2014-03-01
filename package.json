@@ -19,5 +19,9 @@
     "readable-stream": "~1.0.26",
     "commander": "~2.1.0",
     "colors": "~0.6.2"
+  },
+  "gruntSource": {
+    "source": "~/.grunt-sources/node",
+    "repo": "https://github.com/jpillora/grunt-source-node.git"
   }
 }
