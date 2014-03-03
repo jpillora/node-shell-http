@@ -12,6 +12,7 @@ program
   .option('-c, --client', 'run in client mode (default)')
   .option('-s, --server', 'run in server mode')
   .option('-t, --token [abc123]', 'secret token')
+  .option('-r, --restart', 'send a restart command (when in client mode)')
   .parse(process.argv);
 
 if(program.token)
@@ -88,9 +89,9 @@ if(program.server) {
   client.on('connected', function() {
     var i = client.info;
     console.log("  Connected to '%s' (%s)", i.hostname.green, (protocol+'://'+host+':'+port).green);
-    console.log("  Server Time '%s' (Uptime %ssec)", i.date.green, i.uptime.toString().green);
+    console.log("  Server Time '%s' (Uptime %ssec)", i.date.green, Math.round(i.uptime).toString().green);
     console.log("  Memory Usage %sGB/%sGB (%s% free)",
-      (Math.round(i.freemem/10e5)/10e2).toString().cyan,
+      (Math.round((i.totalmem-i.freemem)/10e5)/10e2).toString().cyan,
       (Math.round(i.totalmem/10e5)/10e2).toString().cyan,
       (Math.round((i.freemem/i.totalmem)*10e3)/10e1).toString().cyan
     );
@@ -101,6 +102,9 @@ if(program.server) {
   client.on('disconnected', function() {
     console.log("  Disconnected".red);
   });
+
+  if(program.restart)
+    client.restart();
 
   process.stdin.pipe(client.stdin);
 
